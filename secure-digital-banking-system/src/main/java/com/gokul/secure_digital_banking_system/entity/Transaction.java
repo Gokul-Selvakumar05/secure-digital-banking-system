@@ -19,23 +19,23 @@ public class Transaction {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, nullable = false)
+    @Column(name="transaction_Id",unique = true, nullable = false)
     private String transactionId;
 
     @Column(nullable = false, length = 20)
-    private String transactionType;
+    private String type;
 
     @Column(nullable = false)
-    private BigDecimal transactionAmount;
+    private BigDecimal amount;
 
-    @Column
+    @Column(name="transaction_date")
     private LocalDateTime transactoinDate;
 
     @Column(length = 255)
     private String transactionDescription;
 
     @Column(nullable = false, length = 20)
-    private String transactionStatus= "PENDING";
+    private String transactionStatus= "COMPLETED";
 
     @Column(name = "balance_after")
     private BigDecimal balanceAfter;
@@ -47,7 +47,13 @@ public class Transaction {
 
     @PrePersist
     protected void onCreate() {
-        transactoinDate = LocalDateTime.now();
+        if(transactoinDate==null) {
+            transactoinDate = LocalDateTime.now();
+        }
+        if(transactionStatus==null)
+        {
+            transactionStatus="PENDING";
+        }
     }
 
     public static final String TYPE_DEPOSIT = "DEPOSIT";
