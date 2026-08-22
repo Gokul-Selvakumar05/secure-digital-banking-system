@@ -1,6 +1,10 @@
 package com.gokul.secure_digital_banking_system.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.web.service.annotation.GetExchange;
 
 import java.math.BigDecimal;
@@ -9,80 +13,50 @@ import java.util.Set;
 
 @Entity
 @Table(name = "accounts")
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class Account {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
-    @Column(unique = true, nullable = false)
+    @Column(nullable = false, unique = true, length = 20)
     private String accountNumber;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private String accountType;
+    private AccountType accountType;
 
-    @Column(precision = 15, scale = 2, nullable = false)
-    private BigDecimal balance=BigDecimal.ZERO;
+    @Column(nullable = false, precision = 19, scale = 4)
+    private BigDecimal balance;
 
-    @Column(length = 3)
-    private String currency = "INR";
+    @Column(nullable = false)
+    private boolean active;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User owner;
 
     @Column(nullable = false, updatable = false)
-    private LocalDateTime openedAt;
-
-    @Column(length = 20)
-    private String status = "ACTIVE";
-
-    @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
-
-    @OneToMany(mappedBy="account", cascade = CascadeType.ALL,fetch = FetchType.LAZY)
-    private Set<Transaction> transactions;
+    @Version
+    private Long version; // optimistic locking to prevent concurrent balance corruption
 
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
-
-    public void deposit(BigDecimal amount)
-    {
-        if(amount.compareTo(BigDecimal.ZERO)<=0)
-        {
-            throw new IllegalArgumentException("Amount must be greater than 0");
+        this.createdAt = LocalDateTime.now();
+        this.active = true;
+        if (this.balance == null) {
+            this.balance = BigDecimal.ZERO;
         }
-        this.balance=this.balance.add(amount);
     }
 
-    public void withdraw(BigDecimal amount)
-    {
-        if(amount.compareTo(BigDecimal.ZERO)<=0)
-        {
-            throw new IllegalArgumentException("Amount must be greater than 0");
-        }
-        if(this.balance.compareTo(amount)<0)
-        {
-            throw new IllegalArgumentException("Insufficent Balance");
-        }
-        this.balance=this.balance.subtract(amount);
-    }
-
-    public boolean isActive()
-    {
-        return "ACTIVE".equals(this.status);
+    public enum AccountType {
+        SAVINGS, CURRENT
     }
 
 }

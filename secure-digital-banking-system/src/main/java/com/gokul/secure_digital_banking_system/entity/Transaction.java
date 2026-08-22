@@ -2,6 +2,7 @@ package com.gokul.secure_digital_banking_system.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -12,59 +13,57 @@ import java.time.LocalDateTime;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 @Table(name = "transactions")
 public class Transaction {
+
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name="transaction_Id",unique = true, nullable = false)
+    @Column(nullable = false, unique = true, length = 30)
     private String transactionId;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private String type;
+    private TransactionType type;
 
-    @Column(nullable = false)
+    @Column(nullable = false, precision = 19, scale = 4)
     private BigDecimal amount;
 
-    @Column(name="transaction_date")
-    private LocalDateTime transactoinDate;
+    @Column(nullable = false, precision = 19, scale = 4)
+    private BigDecimal balanceAfterTransaction;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "source_account_id", nullable = false)
+    private Account sourceAccount;
+
+    // null for DEPOSIT / WITHDRAWAL, populated for TRANSFER
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "target_account_id")
+    private Account targetAccount;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private TransactionStatus status;
 
     @Column(length = 255)
-    private String transactionDescription;
+    private String remarks;
 
-    @Column(nullable = false, length = 20)
-    private String transactionStatus= "COMPLETED";
-
-    @Column(name = "balance_after")
-    private BigDecimal balanceAfter;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "account_id",nullable = false)
-    private Account account;
-
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime timestamp;
 
     @PrePersist
     protected void onCreate() {
-        if(transactoinDate==null) {
-            transactoinDate = LocalDateTime.now();
-        }
-        if(transactionStatus==null)
-        {
-            transactionStatus="PENDING";
-        }
+        this.timestamp = LocalDateTime.now();
     }
 
-    public static final String TYPE_DEPOSIT = "DEPOSIT";
-    public static final String TYPE_WITHDRAWAL = "WITHDRAWAL";
-    public static final String TYPE_TRANSFER = "TRANSFER";
-    public static final String TYPE_TRANSFER_RECEIVE = "TRANSFER_RECEIVE";
+    public enum TransactionType {
+        DEPOSIT, WITHDRAWAL, TRANSFER
+    }
 
-    public static final String STATUS_PENDING = "PENDING";
-    public static final String STATUS_COMPLETED = "COMPLETED";
-    public static final String STATUS_FAILED = "FAILED";
-    public static final String STATUS_CANCELLED = "CANCELLED";
-
-
+    public enum TransactionStatus {
+        SUCCESS, FAILED, PENDING
+    }
 }

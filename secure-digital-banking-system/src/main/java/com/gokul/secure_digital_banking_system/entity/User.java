@@ -2,6 +2,7 @@ package com.gokul.secure_digital_banking_system.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
@@ -19,80 +20,51 @@ import static org.aspectj.weaver.tools.cache.SimpleCacheFactory.enabled;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 @Table(name = "users")
 public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long Id;
-    @Column(unique = true, nullable = false)
-    private String userName;
-    @Column(unique = true, nullable = false)
-    private String email;
-    @Column(nullable = false)
-    private String password;
+    private Long id;
+
     @Column(nullable = false, length = 100)
-    private String firstName;
-    private String LastName;
-    @Column(nullable = false,length = 15)
+    private String fullName;
+
+    @Column(nullable = false, unique = true, length = 100)
+    private String email;
+
+    @Column(nullable = false)
+    private String password; // BCrypt hashed, never stored in plain text
+
+    @Column(nullable = false, unique = true, length = 15)
     private String phoneNumber;
+
     @Column(nullable = false)
-    private String adress;
+    private boolean enabled;
+
     @Column(nullable = false)
-    private Boolean accountActive = true;
-    @Column(name="created_at")
+    private boolean accountNonLocked;
+
+    @Builder.Default
+    private int failedLoginAttempts = 0;
+
+    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
-    @Column(name="updated_at")
-    private LocalDateTime updatedAt;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name="role_id")
+            inverseJoinColumns = @JoinColumn(name = "role_id")
     )
-
-    private Set<Role> roles=new HashSet<>();
-
-    @OneToMany(mappedBy = "user",cascade = CascadeType.ALL,fetch = FetchType.LAZY)
-    private Set<Account> accounts=new HashSet<>();
+    @Builder.Default
+    private Set<Role> roles = new HashSet<>();
 
     @PrePersist
-    protected void onCreate()
-    {
-        createdAt=LocalDateTime.now();
-        updatedAt=LocalDateTime.now();
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+        this.enabled = true;
+        this.accountNonLocked = true;
     }
-
-    @PreUpdate
-    protected void onUpdate()
-    {
-        updatedAt=LocalDateTime.now();
-    }
-
-    public boolean hasRole(String roleName)
-    {
-        return roles.stream().anyMatch(role-> role.getRoleName().equals(roleName));
-    }
-//    @Override
-//    public Collection<? extends GrantedAuthority> getAuthorities() {
-//        return roles.stream()
-//                .map(role -> new SimpleGrantedAuthority(role.getRoleName()))
-//                .collect(Collectors.toSet());
-//    }
-//
-//    @Override
-//    public String getUsername() { return userName; }
-//
-//    @Override
-//    public boolean isAccountNonExpired() { return true; }
-//
-//    @Override
-//    public boolean isAccountNonLocked() { return true; }
-//
-//    @Override
-//    public boolean isCredentialsNonExpired() { return true; }
-//
-//    @Override
-//    public boolean isEnabled() { return accountActive; }
 }
