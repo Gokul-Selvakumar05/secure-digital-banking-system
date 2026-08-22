@@ -12,14 +12,15 @@ import java.util.Optional;
 @Repository
 public interface AccountRepository  extends JpaRepository<Account,Long> {
 
-    Optional<Account> findByAccountNumber(String accountNumber);
-
-    List<Account> findByUserId(Long userId);
-
     @Query("SELECT a FROM Account a WHERE a.user.id = :userId")
     List<Account> findAccountsByUserId(@Param("userId") Long userId);
 
-    List<Account> findByUserIdAndStatus(Long userId,String status);
+    @Query("SELECT a FROM Account a WHERE a.accountNumber = :accountNumber")
+    Optional<Account> findByAccountNumber(@Param("accountNumber") String accountNumber);
 
-    boolean existsByAccountNumber(String accountNumber);
+    @Query("SELECT CASE WHEN COUNT(a) > 0 THEN true ELSE false END FROM Account a WHERE a.accountNumber = :accountNumber")
+    boolean existsByAccountNumber(@Param("accountNumber") String accountNumber);
+
+    @Query("SELECT a FROM Account a WHERE a.user.id = :userId AND a.status = 'ACTIVE'")
+    List<Account> findActiveAccountsByUserId(@Param("userId") Long userId);
 }
