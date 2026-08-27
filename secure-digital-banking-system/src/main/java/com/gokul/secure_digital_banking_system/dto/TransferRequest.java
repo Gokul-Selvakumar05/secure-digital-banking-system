@@ -5,22 +5,25 @@ import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 
-@Data
+@Getter
+@Setter
 public class TransferRequest {
-    @NotBlank(message = "From account is required")
-    private String fromAccountNumber;
 
-    @NotBlank(message = "To account is required")
-    private String toAccountNumber;
+    @NotBlank(message = "Source account number is required")
+    private String sourceAccountNumber;
+
+    @NotBlank(message = "Target account number is required")
+    private String targetAccountNumber;
 
     @NotNull(message = "Amount is required")
-    @DecimalMin(value = "0.01")
-    @DecimalMax(value = "1000000")
+    @DecimalMin(value = "0.01", message = "Amount must be greater than zero")
     private BigDecimal amount;
 
-    private String description;
+    private String remarks;
 
 }
