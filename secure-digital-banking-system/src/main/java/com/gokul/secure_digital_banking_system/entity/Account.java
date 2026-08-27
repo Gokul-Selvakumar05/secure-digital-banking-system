@@ -44,7 +44,7 @@ public class Account {
     private LocalDateTime createdAt;
 
     @Version
-    private Long version; // optimistic locking to prevent concurrent balance corruption
+    private Long version;
 
     @PrePersist
     protected void onCreate() {
