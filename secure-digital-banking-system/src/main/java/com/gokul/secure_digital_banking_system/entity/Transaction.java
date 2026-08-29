@@ -38,7 +38,6 @@ public class Transaction {
     @JoinColumn(name = "source_account_id", nullable = false)
     private Account sourceAccount;
 
-    // null for DEPOSIT / WITHDRAWAL, populated for TRANSFER
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "target_account_id")
     private Account targetAccount;

@@ -18,7 +18,6 @@ public interface AccountRepository  extends JpaRepository<Account,Long> {
 
     List<Account> findByOwnerId(Long ownerId);
 
-    // Row-level lock so two simultaneous transfers can't corrupt the same balance
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select a from Account a where a.accountNumber = :accountNumber")
     Optional<Account> findByAccountNumberForUpdate(@Param("accountNumber") String accountNumber);
